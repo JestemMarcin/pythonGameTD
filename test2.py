@@ -1,18 +1,19 @@
-import random, sys, copy, os, pygame, csv
+import os
+import csv
 import pygame
 
 
-# def create_path():
-def save_path(path):
+def save_path(path: [(int, int)]):
+    # save given path to file
     with open('arena1_path.csv', 'w', newline='', encoding='UTF8') as f:
         # create the csv writer
         writer = csv.writer(f, delimiter=';')
-
         # write a row to the csv file
         writer.writerows(path)
 
 
-def read_path():
+def read_path() -> [(int, int)]:
+    # read path from file return as list
     path = []
     with open('arena1_path.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=';')
@@ -22,8 +23,7 @@ def read_path():
 
 
 def point_to_point_path_random_algorythm_by_myself(point1: [int, int], point2: [int, int]) -> [(int, int)]:
-    # I dont care if it is not optimal, Im just gonna generate few maps nobody cares, and internet tell no answer to me
-    # This algorithm calculate path points in straight line from point to point without first starting point
+    # calculate path points in straight line from point to point without first starting point
     path = []
     # path.append(point1[0],point1[1])
     difference_x = max(point1[0], point2[0]) - min(point1[0], point2[0])
@@ -34,12 +34,13 @@ def point_to_point_path_random_algorythm_by_myself(point1: [int, int], point2: [
     while not (round(point1[0]) == point2[0] and round(point1[1]) == point2[1]):
         point1[0] += direction[0] * difference_x / points_count
         point1[1] += direction[1] * difference_y / points_count
-
         path.append((round(point1[0]), round(point1[1])))
+
     return path
 
 
-def process_path(path):
+def process_path(path: [(int, int)]):
+    # process path, adding path xy cords between all points if possible
     complex_path = []
     old_point = []
     for point in path:
@@ -48,29 +49,36 @@ def process_path(path):
         else:
             complex_path.append(point)
         old_point = point
+
     return complex_path
 
 
 def start():
-    # Pygame resolution automatic resizing, idk if its pygame problem or what, fix is for windows I guess
+    # Pygame resolution automatic resizing, fix found in the internet for windows only I guess
     if os.name == 'nt':
         import ctypes
         ctypes.windll.user32.SetProcessDPIAware()
+    ####################
 
     pygame.init()
 
-    # Set up the drawing window
+    # set up the drawing window
 
     screen = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN)  # [850, 850]
+
+    # load asset
     arena1 = pygame.image.load('assets/arenas/arena1.png').convert_alpha()
+
     path = []
     game_loop_period = 20
     sprites = []
-    # Run until the user asks to quit
+
+    # run until the user asks to quit
     exit_game = False
     while not exit_game:
+        # main loop
 
-        # Did the user click the window close button?
+        # event managment
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit_game = True
@@ -87,15 +95,15 @@ def start():
                     path = read_path()
                 elif event.key == pygame.K_p:
                     path = process_path(path)
+        ####################
 
-        # Fill the background with white
+        # draw stuff
         screen.fill((255, 3, 255))
-
         pygame.draw.rect(screen, (1, 2, 3), pygame.Rect(0, 0, 850, 850))
         pygame.draw.rect(screen, (1, 112, 23), pygame.Rect(1070, 0, 850, 850))
-        # Draw a green line
         pygame.draw.line(screen, (0, 0, 255), (0, 0), (900, 500), 5)
         screen.blit(arena1, (0, 0))
+
         # draw path
         last_point = []
         for point in path:
@@ -103,7 +111,8 @@ def start():
             if len(last_point) != 0:
                 pygame.draw.line(screen, (0, 0, 255), point, last_point, 5)
             last_point = point;
-        # Update display with flip rather than update cause it's faster for whole screen ?
+
+        # update display with flip rather than update because it's faster for whole screen ?
         pygame.display.flip()
 
         # Game period - refresh rate
