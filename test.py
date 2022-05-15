@@ -62,11 +62,9 @@ class Projectile:
         self.y_movement = 1 - self.x_movement
         if self.xy[0]-self.xy_target[0]>=0:
             self.x_movement *= -1
-            print('ss')
         if self.xy[1] - self.xy_target[1] >= 0:
             self.y_movement *= -1
     def move(self):
-        print(self.y_movement)
         self.xy[0]+=self.x_movement
         self.xy[1]+=self.y_movement
 
@@ -76,29 +74,28 @@ class Projectile:
 
 def start():
     # Pygame resolution automatic resizing, fix found in the internet for windows only I guess
-    if os.name == 'nt':
-        import ctypes
-        ctypes.windll.user32.SetProcessDPIAware()
+
     ####################
 
     pygame.init()
 
     # set up the drawing window
 
-    screen = pygame.display.set_mode([1920, 1080], pygame.FULLSCREEN)  # [850, 850]
+    screen = pygame.display.set_mode([850, 850], pygame.FULLSCREEN)  # [850, 850]
     clock = pygame.time.Clock()
 
     # load asset
     arena1 = pygame.image.load('assets/arenas/arena1.png').convert_alpha()
-    enemy1 = pygame.image.load('assets/enemies/enemy1.png').convert_alpha()
+    enemy1 = pygame.image.load('assets/enemies/alien.png').convert_alpha() # stolen from <a href="https://www.flaticon.com/free-icons/alien" title="alien icons">Alien icons created by Freepik - Flaticon</a>
     defender1 = pygame.image.load('assets/defenders/defender1/defender1.png').convert_alpha()
     projectile1 = pygame.image.load('assets/defenders/defender1/defender1_projectile.png')
     path = read_path()
     enemies = []
     defenders = []
     sprites = []
-    enemies.append(Enemy(enemy1, 6, 100, 51, 51, pygame.time.get_ticks()))
-    defenders.append(Defender(defender1, projectile1, 200, 2, 10, 11, 11,(250,250), pygame.time.get_ticks() ))
+
+    enemies.append(Enemy(enemy1, 6, 30, 32, 32, pygame.time.get_ticks()))
+
 
     # fps
     fps = 100
@@ -106,6 +103,16 @@ def start():
     exit_game = False
     while not exit_game:
         # main loop
+        last_move_time= pygame.time.get_ticks() if 'last_move_time' not in locals() else last_move_time
+        # enemies creator
+        time_difference = pygame.time.get_ticks() - last_move_time
+        move_countt = time_difference // 500  # operator count how many times thing contains, always forget it
+        last_move_time = pygame.time.get_ticks() - time_difference % 500  # replace last time and
+        alien_hp=30
+        for i in range(move_countt):
+            enemies.append(Enemy(enemy1, 6, alien_hp, 32, 32, pygame.time.get_ticks()))
+            alien_hp+=1
+
 
         # event managment
         for event in pygame.event.get():
@@ -113,9 +120,9 @@ def start():
                 exit_game = True
             elif event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                # get a list of all sprites that are under the mouse cursor
-                clicked_sprites = [s for s in sprites if s.rect.collidepoint(pos)]
-                # do something with the clicked sprites...
+                defenders.append(
+                    Defender(defender1, projectile1, 200, 2, 10, 51, 51, pos, pygame.time.get_ticks()))
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_o:
                     path = read_path()
@@ -123,10 +130,6 @@ def start():
         ####################
 
         # draw stuff
-        screen.fill((255, 3, 255))
-        pygame.draw.rect(screen, (1, 2, 3), pygame.Rect(0, 0, 850, 850))
-        pygame.draw.rect(screen, (1, 112, 23), pygame.Rect(1070, 0, 850, 850))
-        pygame.draw.line(screen, (0, 0, 255), (0, 0), (900, 500), 5)
         screen.blit(arena1, (0, 0))
 
         # draw path
@@ -135,7 +138,7 @@ def start():
 
         for defender in defenders:
             # draw defenders
-            screen.blit(defender.img, defender.xy)
+            screen.blit(defender.img, (defender.xy[0]-defender.width/2,defender.xy[1]-defender.height/2))
 
             # draw projectiles
             for projectile in defender.projectiles:
@@ -184,17 +187,15 @@ def start():
             for defender in defenders:
                 if not enemy_exist:
                     break
-                else:
-                    for projectile in defender.projectiles:
-                        # check projectile colizions with enemies
-                        if pygame.Rect((path[enemy.path_index][0]-enemy.width/2,path[enemy.path_index][1]-enemy.height/2),(enemy.width,enemy.height)).collidepoint(projectile.xy):
-                            defender.projectiles.remove(projectile)
-                            enemy.hp -= defender.damage
-                            if enemy.hp <= 0:
-                                enemies.remove(enemy)
-                                enemy_exist=False
-                                print("remove enemy")
-        #draw projectiles an
+                for projectile in defender.projectiles:
+                    # check projectile colizions with enemies
+                    if pygame.Rect((path[enemy.path_index][0]-enemy.width/2,path[enemy.path_index][1]-enemy.height/2),(enemy.width,enemy.height)).collidepoint(projectile.xy):
+                        defender.projectiles.remove(projectile)
+                        enemy.hp -= defender.damage
+                        if enemy.hp <= 0:
+                            enemies.remove(enemy)
+                            enemy_exist=False
+
         # update display with flip rather than update because it's faster for whole screen ?
         pygame.display.flip()
         # game period - refresh rate
