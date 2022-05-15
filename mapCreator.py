@@ -71,23 +71,20 @@ def start():
 
     path = []
     game_loop_period = 20
-    sprites = []
 
     # run until the user asks to quit
     exit_game = False
     while not exit_game:
         # main loop
 
-        # event managment
+        # event management
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit_game = True
             elif event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 path.append(pos)
-                # get a list of all sprites that are under the mouse cursor
-                clicked_sprites = [s for s in sprites if s.rect.collidepoint(pos)]
-                # do something with the clicked sprites...
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_i:
                     save_path(path)
@@ -110,12 +107,12 @@ def start():
             pygame.draw.circle(screen, (100, 100, 100), (point[0], point[1]), 10)
             if len(last_point) != 0:
                 pygame.draw.line(screen, (0, 0, 255), point, last_point, 5)
-            last_point = point;
+            last_point = point
 
         # update display with flip rather than update because it's faster for whole screen ?
         pygame.display.flip()
 
-        # Game period - refresh rate
+        # game period - refresh rate
         pygame.time.delay(game_loop_period)
 
     pygame.quit()
