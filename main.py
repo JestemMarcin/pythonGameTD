@@ -4,7 +4,7 @@ from Enemy import *
 # idk right now how to make packages namespaces or whatever so imports go like that
 
 
-def read_path() -> [(int, int)]:
+def read_path():
     # read path from file return as list
     path = []
     with open('arena1_path.csv', 'r') as csv_file:
